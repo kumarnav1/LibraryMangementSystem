@@ -1,5 +1,7 @@
 package service;
 
+import observer.ReservationEvent;
+import observer.ReservationObserver;
 import model.Book;
 import model.BorrowRecord;
 import model.Patron;
@@ -15,6 +17,14 @@ public class LibraryService {
     private final Map<String, Book> booksByIsbn = new HashMap<>();
     private final Map<String, Patron> patronsById = new HashMap<>();
     private final Map<String, Integer> availableCopies = new HashMap<>();
+    private final ReservationService reservationService;
+    private final List<ReservationObserver> observers = new ArrayList<>();
+
+    public LibraryService() {
+        NotificationService notificationService = new ConsoleNotificationService();
+        this.reservationService = new ReservationService(patronsById, notificationService);
+        observers.add(reservationService);
+    }
 
     public void addBook(Book book , int copies) {
         booksByIsbn.put(book.getIsbn(), book);
@@ -100,7 +110,6 @@ public class LibraryService {
         return true;
     }
 
-
     public boolean returnBook(String patronId, String isbn) {
 
         Patron patron = patronsById.get(patronId);
@@ -138,6 +147,12 @@ public class LibraryService {
         }
 
         logger.info("Book returned: ISBN=" + isbn + " from Patron=" + patronId);
+
+        ReservationEvent event = new ReservationEvent(isbn, book);
+
+        for (ReservationObserver observer : observers) {
+            observer.onBookAvailable(event);
+        }
         return true;
     }
 
@@ -150,4 +165,19 @@ public class LibraryService {
         return patron.getBorrowingHistory();
     }
 
+    public boolean reserveBook(String patronId, String isbn) {
+        if (!patronsById.containsKey(patronId) || !booksByIsbn.containsKey(isbn)) {
+            return false;
+        }
+
+        int available = availableCopies.getOrDefault(isbn, 0);
+
+        if (available > 0) {
+            logger.info("Book is available, no need to reserve.");
+            return false;
+        }
+
+        reservationService.reserve(patronId, isbn);
+        return true;
+    }
 }
