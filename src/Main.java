@@ -21,7 +21,7 @@ public class Main {
         library.addPatron(p2);
         logger.info("Checking out all copies of book 101...");
         library.checkoutBook("P1", "101");
-        library.checkoutBook("P2", "101"); // now 0 copies
+        library.checkoutBook("P2", "101");
         logger.info("Attempting checkout when no copies available...");
         boolean failedCheckout = library.checkoutBook("P1", "101");
         logger.info("Checkout success: " + failedCheckout);

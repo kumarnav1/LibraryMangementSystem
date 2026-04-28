@@ -9,6 +9,109 @@ Core Features
 - Track available copies (inventory)
 - Maintain borrowing history per patron
 
++----------------------+
+|        Book          |
++----------------------+
+| - isbn               |
+| - title              |
+| - author             |
+| - publicationYear    |
++----------------------+
+
++------------------------------+
+|        BorrowRecord          |
++------------------------------+
+| - isbn                       |
+| - bookTitle                  |
+| - checkoutDate               |
+| - dueDate                    |
+| - returnDate                 |
++------------------------------+
+| + markReturned()             |
++------------------------------+
+
++------------------------------+
+|           Patron             |
++------------------------------+
+| - patronId                   |
+| - name                       |
+| - email                      |
+| - phone                      |
+| - borrowingHistory           |
++------------------------------+
+| + addBorrowRecord()          |
+| + markReturned()             |
++------------------------------+
+
+              1
+Patron -----------------------> BorrowRecord
+(has many)
+
++--------------------------------------+
+|         LibraryService               |
++--------------------------------------+
+| - booksByIsbn                        |
+| - patronsById                        |
+| - availableCopies                    |
+| - reservationService                 |
+| - observers                          |
++--------------------------------------+
+| + addBook()                          |
+| + removeBook()                       |
+| + searchByTitle()                    |
+| + checkoutBook()                     |
+| + returnBook()                       |
+| + reserveBook()                      |
++--------------------------------------+
+
+LibraryService -----> Book        (manages)
+LibraryService -----> Patron      (manages)
+LibraryService -----> ReservationService (uses)
+
++--------------------------------------+
+|       ReservationObserver            |
++--------------------------------------+
+| <<interface>>                        |
+| + onBookAvailable()                  |
++--------------------------------------+
+
++--------------------------------------+
+|        ReservationService            |
++--------------------------------------+
+| - reservations (Map<ISBN, Queue>)    |
+| - notificationService                |
++--------------------------------------+
+| + reserve()                          |
+| + onBookAvailable()                  |
++--------------------------------------+
+
+ReservationService ----|> ReservationObserver
+
++--------------------------------------+
+|        ReservationEvent              |
++--------------------------------------+
+| - isbn                               |
+| - book                               |
++--------------------------------------+
+
++--------------------------------------+
+|       NotificationService            |
++--------------------------------------+
+| <<interface>>                        |
+| + notify()                           |
++--------------------------------------+
+
++--------------------------------------+
+|   ConsoleNotificationService         |
++--------------------------------------+
+| + notify()                           |
++--------------------------------------+
+
+ConsoleNotificationService ----|> NotificationService
+
+ReservationService -----> NotificationService (uses)
+ReservationEvent -----> Book
+
 
 Reservation System
 - Reserve books when they are unavailable
